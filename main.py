@@ -64,7 +64,18 @@ class MainWindow(QMainWindow):
         self.btn_users.clicked.connect(self.abrir_users_window)
 
         self.central_widget.setLayout(layout)
+    def show_cashier_interface(self):
+        """Muestra la interfaz de cajero con botones centrados."""
+        self.setWindowTitle("Panel de Cajero")
 
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+
+        layout = QVBoxLayout()
+        layout.setSpacing(20)  # 🔹 Espacio entre botones
+        layout.setContentsMargins(40, 40, 40, 40)  # 🔹 Márgenes para centrar los botones
+
+        # 🔹 Crear botones con tamaño fijo
     def abrir_stock_window(self):
         """Abre la ventana de gestión de stock."""
         self.stock_window = StockWindow()

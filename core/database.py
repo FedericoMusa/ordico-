@@ -97,6 +97,41 @@ def obtener_usuario_por_username(username):
             return None
         finally:
             conn.close()
+import sqlite3
+
+def eliminar_usuario(user_id):
+    try:
+        conexion = sqlite3.connect("ordico.db")
+        cursor = conexion.cursor()
+
+        # Evitar eliminar un administrador
+        cursor.execute("SELECT rol FROM usuarios WHERE id = ?", (user_id,))
+        rol = cursor.fetchone()
+
+        if rol and rol[0] == "admin":
+            print("❌ No puedes eliminar un administrador.")
+            return False
+
+        # Eliminar solo si no tiene ventas asociadas
+        cursor.execute("SELECT COUNT(*) FROM ventas WHERE usuario_id = ?", (user_id,))
+        tiene_ventas = cursor.fetchone()[0]
+
+        if tiene_ventas > 0:
+            print("❌ No puedes eliminar un usuario con ventas asociadas.")
+            return False
+
+        # Proceder con la eliminación
+        cursor.execute("DELETE FROM usuarios WHERE id = ?", (user_id,))
+        conexion.commit()
+
+    except sqlite3.Error as e:
+        print(f"❌ Error al eliminar usuario: {e}")
+    
+    finally:
+        conexion.close()  # 🔹 Cierra la conexión aunque haya error
+
+    print("✅ Usuario eliminado correctamente.")
+    return True
 
 def obtener_productos():
     """Obtiene la lista de productos desde la base de datos."""

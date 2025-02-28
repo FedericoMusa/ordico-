@@ -11,7 +11,6 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.user = user
         self.init_ui()
-
     def init_ui(self):
         """Configura la interfaz gráfica principal."""
         self.setWindowTitle("Sistema POS - Panel Principal")
