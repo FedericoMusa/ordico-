@@ -38,24 +38,36 @@ def inicializar_db():
             conn.close()
 
 def agregar_usuario(username, password, email, dni, rol):
-    """Agrega un usuario a la base de datos con email y DNI."""  
-    conn = conectar_db()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO usuarios (username, password, email, dni, rol) VALUES (?, ?, ?, ?, ?)",
-                           (username, password, email, dni, rol))
-            conn.commit()
-            logging.info(f"✅ Usuario registrado: {username}")
-            return True
-        except sqlite3.IntegrityError:
-            logging.warning(f"⚠️ Error: El usuario '{username}', email '{email}' o DNI '{dni}' ya existen.")
-            return False
-        except sqlite3.Error as e:
-            logging.error(f"❌ Error al agregar usuario: {e}")
-            return False
-        finally:
-            conn.close()
+    """Inserta un nuevo usuario en la base de datos solo si el email o el DNI no están repetidos."""
+    try:
+        conn = conectar_db()
+        cursor = conn.cursor()
+
+        # Intentar insertar directamente (Si hay `UNIQUE`, fallará si hay duplicados)
+        cursor.execute("INSERT INTO usuarios (nombre, password, email, dni, rol) VALUES (?, ?, ?, ?, ?)",
+                       (username, password, email, dni, rol))
+        conn.commit()
+        logging.info(f"✅ Usuario registrado correctamente: {username} con rol {rol}")
+        return "Usuario registrado exitosamente."
+
+    except sqlite3.IntegrityError as e:
+        # Error de clave duplicada (por restricciones UNIQUE en email y dni)
+        if "UNIQUE constraint failed: usuarios.email" in str(e):
+            logging.warning(f"⚠️ Error: El email '{email}' ya está registrado.")
+            return "Error: El email ya está registrado."
+
+        if "UNIQUE constraint failed: usuarios.dni" in str(e):
+            logging.warning(f"⚠️ Error: El DNI '{dni}' ya está registrado.")
+            return "Error: El DNI ya está registrado."
+
+        return "Error: El usuario ya existe con email o DNI repetido."
+
+    except sqlite3.Error as e:
+        logging.error(f"❌ Error al agregar usuario: {e}")
+        return f"Error al registrar usuario: {e}"
+
+    finally:
+        conn.close()
 
 def obtener_usuario_por_email(email):
     """Obtiene un usuario por su correo electrónico."""

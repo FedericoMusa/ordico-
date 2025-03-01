@@ -3,15 +3,14 @@ from core.database import obtener_usuarios, eliminar_usuario, actualizar_rol_usu
 import logging
 
 class UserManagementWindow(QWidget):
-    """Ventana para la administración de usuarios."""
+    """Ventana de administración de usuarios con optimización de interfaz."""
 
     def __init__(self):
         super().__init__()
         self.init_ui()
 
     def init_ui(self):
-        """Inicializa la interfaz de gestión de usuarios."""
-        self.setWindowTitle("Gestión de Usuarios")
+        self.setWindowTitle("Gestión de Usuarios - ORDICO")
         self.setGeometry(300, 200, 600, 400)
 
         layout = QVBoxLayout()
@@ -21,15 +20,14 @@ class UserManagementWindow(QWidget):
 
         self.tabla_usuarios = QTableWidget()
         self.tabla_usuarios.setColumnCount(4)
-        self.tabla_usuarios.setHorizontalHeaderLabels(["ID", "Usuario", "Email", "Rol"])
+        self.tabla_usuarios.setHorizontalHeaderLabels(["ID", "Nombre", "Email", "Rol"])
+        self.tabla_usuarios.setSortingEnabled(True)  
         layout.addWidget(self.tabla_usuarios)
 
-        # Ajuste automático de columnas y filas
         self.tabla_usuarios.horizontalHeader().setStretchLastSection(True)
         self.tabla_usuarios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tabla_usuarios.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
-        # Estilo para parecerse a Excel
         self.tabla_usuarios.setStyleSheet("""
             QTableWidget {
                 border: 1px solid gray;
@@ -46,21 +44,31 @@ class UserManagementWindow(QWidget):
                 padding: 6px;
             }
         """)
-        
-        # Colores alternos para filas
-        self.tabla_usuarios.setAlternatingRowColors(True)
-        self.tabla_usuarios.setStyleSheet("alternate-background-color: #f9f9f9; background-color: white;")
 
-        # Botones de acción
         self.btn_actualizar = QPushButton("Actualizar Lista")
         self.btn_eliminar = QPushButton("Eliminar Usuario")
         self.btn_cambiar_rol = QPushButton("Cambiar Rol")
+
+        button_style = """
+            QPushButton {
+                background-color: #8B0000;
+                color: white;
+                font-weight: bold;
+                border-radius: 5px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #A52A2A;
+            }
+        """
+        self.btn_actualizar.setStyleSheet(button_style)
+        self.btn_eliminar.setStyleSheet(button_style)
+        self.btn_cambiar_rol.setStyleSheet(button_style)
 
         layout.addWidget(self.btn_actualizar)
         layout.addWidget(self.btn_eliminar)
         layout.addWidget(self.btn_cambiar_rol)
 
-        # Conectar botones a funciones
         self.btn_actualizar.clicked.connect(self.cargar_usuarios)
         self.btn_eliminar.clicked.connect(self.eliminar_usuario)
         self.btn_cambiar_rol.clicked.connect(self.cambiar_rol_usuario)
@@ -69,7 +77,7 @@ class UserManagementWindow(QWidget):
         self.cargar_usuarios()
 
     def cargar_usuarios(self):
-        """Carga los usuarios en la tabla desde la base de datos."""
+        """Carga usuarios en la tabla desde la base de datos."""
         usuarios = obtener_usuarios()
 
         if not usuarios:
@@ -78,21 +86,17 @@ class UserManagementWindow(QWidget):
 
         self.tabla_usuarios.setRowCount(len(usuarios))
 
-        # 🔍 Depuración: Mostrar datos obtenidos antes de insertarlos
-        print("Usuarios obtenidos de la BD:", usuarios)
-
         for i, usuario in enumerate(usuarios):
             try:
-                id_usuario, nombre, _, email, _, rol = usuario  # 🔥 Ignoramos contraseña y DNI con "_"
+                id_usuario, nombre, _, email, _, rol = usuario 
 
-                # Insertar cada valor en la columna correspondiente
                 self.tabla_usuarios.setItem(i, 0, QTableWidgetItem(str(id_usuario)))
                 self.tabla_usuarios.setItem(i, 1, QTableWidgetItem(nombre))
                 self.tabla_usuarios.setItem(i, 2, QTableWidgetItem(email))
                 self.tabla_usuarios.setItem(i, 3, QTableWidgetItem(rol))
             except ValueError as e:
                 logging.error(f"Error al cargar usuario en la tabla: {e}")
-                QMessageBox.warning(self, "Error", "Formato de datos incorrecto al cargar usuarios.")
+                QMessageBox.warning(self, "Error", "Formato de datos incorrecto.")
 
     def eliminar_usuario(self):
         """Elimina un usuario seleccionado en la tabla."""
@@ -137,4 +141,3 @@ class UserManagementWindow(QWidget):
                 self.cargar_usuarios()
             else:
                 QMessageBox.warning(self, "Error", "No se pudo cambiar el rol del usuario.")
-
